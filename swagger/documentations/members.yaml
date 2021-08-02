@@ -1,0 +1,362 @@
+components:
+  responses:
+    Unauthorized:
+      description: (Unauthorized) no hay autorización para llamar al servicio.
+    NotFound:
+      description: (NotFound) no existe el miembro.
+    BadRequest:
+      description: (BadRequest) los datos enviados son incorrectos.
+    ServerError:
+      description: Error en el servidor.
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+  schemas:
+    OK:
+      type: object
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          type: string
+          description: Text indicating response code
+          example: 'ok'
+        message:
+          type: string
+          description: Short message indicating respose status
+          example: 'Success'
+        data:
+          type: array
+          description: Array of objects containing requested data
+          items:
+            $ref: '#/components/schemas/Members'
+            totalPages:
+              type: integer
+              description: The amount of pages
+          example: [
+              {
+                name: Test member,
+                image: testImage.png, # Can be image jpg|gif|png.
+                facebookUrl: facebook.com/testfb, #optional
+                instagramUrl: instagram.com/testIg, #optional
+                linkedinUrl: linkedin.com/testLink, #optional
+                description: descr, #optional
+                totalPages: 4,
+              },
+            ]
+    Members:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the member
+        image:
+          type: string
+          description: The image of the member
+        facebookUrl:
+          type: string
+          description: The facebook link
+        instagramUrl:
+          type: string
+          description: The instagram link
+        linkedinUrl:
+          type: string
+          description: The linkedin link
+        description:
+          type: string
+      example:
+        name: Test member
+        image: testImage.png # Can be image jpg|gif|png.
+        facebookUrl: facebook.com/testfb #optional
+        instagramUrl: instagram.com/testIg #optional
+        linkedinUrl: linkedin.com/testLink #optional
+        description: descr #optional
+    CreatedMember:
+      type: object
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          type: string
+          description: Text indicating response code
+        message:
+          type: string
+          description: Short message indicating respose status
+        data:
+          type: array
+          description: Array of objects containing requested data
+      example:
+        code: 'ok'
+        message: 'Successfully created'
+        data:
+          [
+            {
+              'id': 14,
+              'name': 'memberTest',
+              'image': 'https://www.images.com/somerandomimage.png',
+              'facebookUrl': 'facebook.com/testFb',
+              'instagramUrl': 'instagram.com/testIg',
+              'linkedinUrl': 'linkedin.com/testLinkedin',
+              'description': 'DescriptionTest',
+              'updatedAt': '2021-07-23T03:28:35.729Z',
+              'createdAt': '2021-07-23T03:28:55.769Z',
+            },
+          ]
+    UpdatedMember:
+      type: object
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          type: string
+          description: Text indicating response code
+        message:
+          type: string
+          description: Short message indicating respose status
+        data:
+          type: array
+          description: Array of objects containing requested data
+      example:
+        code: 'ok'
+        message: 'Successfully Updated'
+        data: [1]
+    DeletedMember:
+      type: object
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          type: string
+          description: Text indicating response code
+        message:
+          type: string
+          description: Short message indicating respose status
+        data:
+          type: array
+          description: Array of objects containing requested data
+      example:
+        code: 'ok'
+        message: 'Successfully deleted'
+        data: 1
+  validationErrors:
+    NameRequired:
+      type: object
+      properties:
+        value:
+          type: string
+          example: ''
+        msg:
+          type: string
+          example: Name required
+        param:
+          type: object
+          example: name
+        location:
+          type: string
+          example: body
+    ImageRequired:
+      type: object
+      properties:
+        value:
+          type: string
+          example: ''
+        msg:
+          type: string
+          example: Image required
+        param:
+          type: object
+          example: image
+        location:
+          type: string
+          example: body
+tags:
+  name: Members
+  description: Members managing API
+
+paths:
+  /members:
+    get:
+      summary: Returns the list of all the members
+      tags: [Members]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: The page number sent to visualize an especific list of members
+      security:
+        - ApiKeyAuth: []
+      responses:
+        200:
+          description: The list of the Members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OK'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      summary: Create a new member
+      tags: [Members]
+      in: body
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Members'
+        required: true
+
+      responses:
+        201:
+          description: Member created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CreatedMember'
+        400:
+          description: One or more invalid fields in the body. All validation errors are returned in an array of objects, indicating the invalid value, message, field, and location.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Validations Errors
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      anyOf:
+                        - $ref: '#/components/validationErrors/NameRequired'
+                        - $ref: '#/components/validationErrors/ImageRequired'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        500:
+          $ref: '#/components/responses/ServerError'
+  /members/{id}:
+    get:
+      summary: Get the member by id
+      tags: [Members]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The member id
+      responses:
+        200:
+          description: The member description by id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Members'
+
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/ServerError'
+    put:
+      summary: Update one member
+      tags: [Members]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The member id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Members'
+        required: true
+      responses:
+        200:
+          description: The member was successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdatedMember'
+        400:
+          description: One or more invalid fields in the body. All validation errors are returned in an array of objects, indicating the invalid value, message, field, and location.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Validations Errors
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      anyOf:
+                        - $ref: '#/components/validationErrors/NameRequired'
+                        - $ref: '#/components/validationErrors/ImageRequired'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/ServerError'
+    delete:
+      summary: Delete one members
+      tags: [Members]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The member id
+      responses:
+        200:
+          description: Member deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletedMember'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/ServerError'

@@ -1,0 +1,298 @@
+components:
+  responses:
+    Unauthorized:
+      description: (Unauthorized) no hay autorización para llamar al servicio.
+    NotFound:
+      description: (NotFound) no existe el miembro.
+    BadRequest:
+      description: (BadRequest) los datos enviados son incorrectos.
+    ServerError:
+      description: Error en el servidor.
+  parameters:
+    token:
+      in: header
+      description: Token de autenticación
+      required: true
+
+  schemas:
+    Testimonials:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The auto-generated id of the testimonial
+        name:
+          type: string
+          description: The name of the testimonial
+        image:
+          type: string
+          description: The image of the testimonial
+        content:
+          type: string
+          description: The content of the testimonial
+      example:
+        id: 1
+        name: Test testimonial
+        image: testImage.png # Can be image jpg|gif|png.
+        content: Test content
+    CreateTestimonialRequest:
+      type: object
+      required:
+        - name
+        - content
+      properties:
+        id:
+          type: integer
+          description: The auto-generated id of the testimonial
+        name:
+          type: string
+          description: The name of the testimonial
+        image:
+          type: string
+          description: The image of the testimonial
+        content:
+          type: string
+          description: The content of the testimonial
+      example:
+        name: Test testimonial
+        image: testImage.png # Can be image jpg|gif|png.
+        content: Test content
+    CreateTestimonialResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: status code
+        message:
+          type: string
+          description: status message
+        data:
+          type: object
+          description: object with the testimonial created
+          properties:
+            $ref: '#/components/schemas/Testimonials'
+      example:
+        code : ok
+        message : Successfully created 
+        data: {
+          id: 1,
+          name: example Name,
+          image: exampleImage.jpg,
+          content: example Content
+        }
+    GetTestimonials:
+      type: object
+      properties:
+        code:
+          type: string
+          description: status code
+        message:
+          type: string
+          description: status message
+        data:
+          type: object
+          description: array with a list of testimonial's objects
+          properties:
+            content:
+              type: array
+              description: a list of testimonial's objects
+              items:
+                $ref: '#/components/schemas/Testimonials'
+            totalPages:
+              type: integer
+              description: The amount of pages 
+      example:
+        code : ok
+        message : Success
+        data: {
+          content: [{
+            id: 1,
+            name: example Name,
+            image: exampleImage.jpg,
+            content: example Content
+          }],
+          totalPages: 10
+        }
+    UpdateTestimonialRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The auto-generated id of the testimonial
+        name:
+          type: string
+          description: The new name of the testimonial
+        image:
+          type: string
+          description: The new image of the testimonial
+        content:
+          type: string
+          description: The new content of the testimonial
+      example:
+        name: Update test testimonial
+        image: updateTestImage.png # Can be image jpg|gif|png.
+        content: Update test content
+    UpdateTestimonialResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: status code
+        message:
+          type: string
+          description: status message
+        data:
+          type: object
+          description: object with the updated testimonial 
+          properties:
+            updateTestimonial:
+              type: object
+              description: object with the updated testimonial
+              properties:
+                id:
+                  type: integer
+                  description: The auto-generated id of the testimonial
+                name:
+                  type: string
+                  description: The original or the new name of the testimonial
+                image:
+                  type: string
+                  description: The original or the new image of the testimonial
+                content:
+                  type: string
+                  description: The original or the new content of the testimonial
+      example:
+        code : ok
+        message : Successfully updated 
+        data: {
+          updateTestimonial: {
+            name: update example Name,
+            image: update exampleImage.jpg,
+            content: update example Content
+          }
+        }
+    DeleteTestimonialResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: status code
+        message:
+          type: string
+          description: status message
+        data:
+          type: string
+          description: message with the testimonial successfully deleted
+      example:
+        code : ok
+        message : Successfully deleted 
+        data: Testimonial successfully deleted 
+tags:
+  name: Testimonials
+  description: Testimonials managing API
+
+paths:
+  /testimonials:
+    get:
+      summary: Returns a list of all the testimonials with pagination
+      tags: [Testimonials]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: The page number sent to visualize an especific list of testitmonials
+      responses:
+        200:
+          description: This returns a list of all the Testimonials with pagination
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTestimonials'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      summary: Create a new testimonial
+      tags: [Testimonials]
+      in: body
+      parameters:
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTestimonialRequest'
+        required: true
+
+      responses:
+        201:
+          description: Testimonial created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTestimonialResponse'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        500:
+          $ref: '#/components/responses/ServerError'
+  /testimonials/{id}:
+    put:
+      summary: Update one testimonial
+      tags: [Testimonials]
+      parameters:
+        - $ref: '#/components/parameters/token'
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The testimonial id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTestimonialRequest'
+        required: true
+      responses:
+        200:
+          description: Testimonial updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateTestimonialResponse'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/ServerError'
+    delete:
+      summary: Delete one testimonial
+      tags: [Testimonials]
+      parameters:
+        - $ref: '#/components/parameters/token'
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The testimonial id
+      responses:
+        200:
+          description: Testimonial deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteTestimonialResponse'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/ServerError'

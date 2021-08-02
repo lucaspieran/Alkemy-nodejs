@@ -1,0 +1,322 @@
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+      properties:
+        id:
+          type: string
+          description: The auto-generated id of the user
+        firstName:
+          type: string
+          description: The user name
+        lastName:
+          type: string
+          description: The user last name
+        email:
+          type: string
+          description: The user email
+        password:
+          type: string
+          description: The user password
+        photo: 
+          type: string
+          description: The user photo
+        roleId:
+          type: integer
+          description: The user role
+        deletedAt:
+          type: date
+          description: Date when user was deleted
+        createdAt:
+          type: date
+          description: Date when user was created
+        updatedAt:
+          type: date
+          description: Date when user was updated
+      example:
+        id: 52
+        firstName: Walter
+        lastName: White
+        email: heisenberg@gmail.com
+        password: $2b$10$0gS.RumFekkKD/TD2T733O4NlQ/02xKMzLpQyFFV8sVKsgcXT3Dy6
+        photo: ...
+        roleId: 1
+        deletedAt: null
+        createdAt: 2021-07-21T20:59:04.863Z
+        updatedAt: 2021-07-21T20:59:04.863Z
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization 
+      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNjI2OTc5MjQxLCJleHAiOjE2MjcwNjU2NDF9.Hj_F-QHHu1A1MRweqeWHtlIxF27cnVMhPn8yRgcEfIc
+  requestBodies:
+    UserBody:
+      type: object
+      properties:
+        firstName: 
+          type: string
+          example: Walter
+        lastName:
+          type: string
+          example: White
+        email:
+          type: string
+          example: heisenberg@gmail.com
+        photo:
+          type: string
+          example: "...."
+        password:
+          type: string
+          example: "1234"
+        roleId:
+          type: number
+          example: 1
+    UserLoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          example: heisenberg@gmail.com
+        password:
+          type: string
+          example: "1234"
+  responsesBodies:
+    userCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 52
+        firstName:
+          type: string
+          example: Walter
+        lastName:
+          type: string
+          example: White
+        email:
+          type: string
+          example: heisenberg@gmail.com
+        photo:
+          type: string
+          example: '...'
+        password:
+          type: string
+          example: $2b$10$0gS.RumFekkKD/TD2T733O4NlQ/02xKMzLpQyFFV8sVKsgcXT3Dy6
+        roleId:
+          type: integer
+          example: 1
+        updatedAt:
+          type: string
+          example: 2021-07-21T20:59:04.863Z
+        createdAt:
+          type: string
+          example: 2021-07-21T20:59:04.863Z
+    AuthenticationFailed:
+      type: object
+      properties:
+        code: 
+          type: string
+          example: error
+        message: 
+          type: string
+          example: Authentication failed! Email / password incorrect.
+        data: 
+          type: array
+          example: []
+    InvalidToken:
+      type: object
+      properties:
+        code: 
+          type: string
+          example: error
+        message: 
+          type: string
+          example: Invalid Token
+        data: 
+          type: array
+          example: []
+    UnauhtorizedToken:
+      type: object
+      properties:
+        code: 
+          type: string
+          example: error
+        message: 
+          type: string
+          example: Authorization failed! User withot the privileges
+        data: 
+          type: array
+          example: []
+  validationErrors:
+    FirstNameRequired:
+      type: object
+      properties:
+        value:
+          type: string
+          example: ""
+        msg:
+          type: string
+          example: First Name required
+        param:
+          type: object
+          example: firstName
+        location:
+          type: string
+          example: body
+    EmailExists:
+      type: object
+      properties: 
+        value:
+          type: string
+          example: heisenberg@gmail.com
+        msg:
+          type: string
+          example: Email already exists
+        param:
+          type: string
+          example: email
+        location:
+          type: string
+          example: body
+tags:
+  name: Authentication
+  description: The authentication user API
+  
+paths:
+  /auth/register:
+    post:
+      summary: Register new user 
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content: 
+          application/json: 
+            schema: 
+              type: object
+              $ref: '#/components/requestBodies/UserBody'
+      responses:
+        201:
+          description: The user was created. Return user data and token 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: 
+                    type: string
+                    example: "ok"
+                  message: 
+                    type: string
+                    example: "Successfully created"
+                  data: 
+                    type: object
+                    $ref: '#/components/responsesBodies/userCreated'
+        400:
+          description: One or more invalid fields in the body. All validation errors are returned in an array of objects, indicating the invalid value, message, field, and location.
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: 
+                    type: string
+                    example: error
+                  message: 
+                    type: string
+                    example: Validations Errors
+                  data: 
+                    type: array
+                    items:
+                      type: object  
+                      anyOf:
+                          - $ref: '#/components/validationErrors/FirstNameRequired'
+                          - $ref: '#/components/validationErrors/EmailExists'
+        500:
+          description: Error en el servidor.
+  /auth/login:
+    post:
+      summary: Login user
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content: 
+          application/json: 
+            schema: 
+              $ref: '#/components/requestBodies/UserLoginBody'
+      responses:
+        200:
+          description: The user login successfully. 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: 
+                    type: string
+                    example: "ok"
+                  message: 
+                    type: string
+                    example: "Successfully login"
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTIsImlhdCI6MTYyNjkyNDI4MiwiZXhwIjoxNjI3MDEwNjgyfQ.vHfm6ho-9Dx5QZyUK2NcxL1qwH4c9_pKLufWd46fZn0
+                      userFound:
+                        $ref: '#/components/schemas/User'
+        400:
+          description: Authentication failed. One of the fields is incorrect
+          content: 
+            application/json:
+              schema:
+                 $ref: '#/components/responsesBodies/AuthenticationFailed'  
+        500:
+          description: Error en el servidor.
+  /users:
+    get:
+      security:
+        - ApiKeyAuth: []
+      summary: Get all users. For this endpoint you need to be admin, for that sending a token 
+      tags: [Authentication]
+      responses:
+        200:
+          description: Get a list of the all users
+          content:
+            application/json:
+              schema:
+              type: object
+              properties:
+                code: 
+                  type: string
+                  example: "ok"
+                message: 
+                  type: string
+                  example: "Successfully login"
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/User'
+        400:
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responsesBodies/InvalidToken'
+        403:
+          description: Authorization failed. You have sent vaild token, but this dont have admin role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responsesBodies/UnauhtorizedToken'
+      500:
+        description: Error en el servidor.
+
+
+

@@ -1,0 +1,343 @@
+components:
+  responses:
+    Unauthorized:
+      description: __Unauthorized:__ You have no authorization to access the service.
+    NotFound:
+      description: __NotFound:__ No news were found.
+    BadRequest:
+      description: __BadRequest:__ Incorrect data sent in the request body.
+    ServerError:
+      description: An error occured in the __server__.
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+
+  schemas:
+    Comment:
+      type: object
+      required:
+        - name
+        - content
+        - image
+        - categoryId
+      properties:
+        news_id:
+          type: integer
+          description: The news id to which the comment is associated
+        content:
+          type: string
+          description: The Comment content
+        user_id:
+          type: integer
+          description: The User id to which the comment is associated
+
+    News:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The News title
+        content:
+          type: string
+          description: The News content
+        image:
+          type: string
+          description: Image link or path
+        categoryId:
+          type: integer
+          description: Id of the category to which the news belongs to
+      example:
+        name: Las buenas nuevas
+        content: Noticias del día de hoy
+        image: https://www.designevo.com/res/templates/thumb_small/colorful-hand-and-warm-community.png
+        categoryId: 1
+
+    ResponseOK:
+      type: object
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          type: string
+          description: Text indicating response code
+          example: "ok"
+        message:
+          type: string
+          description: Short message indicating respose status
+          example: "Successfully created"
+        data:
+          type: array
+          description: Array of objects containing requested data
+          example:
+            [
+              {
+                "name": "Las buenas nuevas",
+                "content": "Noticias del día de hoy",
+                "image": "https://www.designevo.com/res/templates/thumb_small/colorful-hand-and-warm-community.png",
+                "categoryId": 1,
+              },
+            ]
+
+    CreatedOK:
+      type: object
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          type: string
+          description: Text indicating response code
+        message:
+          type: string
+          description: Short message indicating respose status
+        data:
+          type: array
+          description: Array of objects containing requested data
+      example:
+        code: "ok"
+        message: "Successfully created"
+        data:
+          [
+            {
+              "id": 14,
+              "name": "Las buenas nuevas",
+              "content": "Noticias del día de hoy",
+              "image": "https://www.designevo.com/res/templates/thumb_small/colorful-hand-and-warm-community.png",
+              "categoryId": 1,
+              "updatedAt": "2021-07-22T18:36:55.769Z",
+              "createdAt": "2021-07-22T18:36:55.769Z",
+            },
+          ]
+    UpdatedOK:
+      type: object
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          type: string
+          description: Text indicating response code
+        message:
+          type: string
+          description: Short message indicating respose status
+        data:
+          type: array
+          description: Array of objects containing requested data
+      example:
+        code: "ok"
+        message: "Successfully Updated"
+        data: [1]
+    DeletedOK:
+      type: object
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          type: string
+          description: Text indicating response code
+        message:
+          type: string
+          description: Short message indicating respose status
+        data:
+          type: array
+          description: Array of objects containing requested data
+      example:
+        code: "ok"
+        message: "Successfully deleted"
+        data: 1
+
+    CommentOK:
+      type: object
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          type: string
+          description: Text indicating response code
+          example: "ok"
+        message:
+          type: string
+          description: Short message indicating respose status
+          example: "Success"
+        data:
+          type: array
+          description: Array of objects containing requested data
+          example:
+            [
+              {
+                "id": 3,
+                "user_id": 10,
+                "body": "comentario genérico sobre novedad",
+                "news_id": 2,
+              },
+            ]
+
+tags:
+  name: News
+  description: News endpoints
+
+paths:
+  /news:
+    get:
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: The number of page of the news list
+      summary: Returns the list of all the news
+      tags: [News]
+      responses:
+        200:
+          description: The list of the news
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseOK"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/ServerError"
+
+    post:
+      summary: Add some news
+      tags: [News]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/News"
+        required: true
+      responses:
+        201:
+          description: The news was added succesfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedOK"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/ServerError"
+
+  /news/{id}:
+    get:
+      security:
+        - ApiKeyAuth: []
+      summary: Get the news by id
+      tags: [News]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: The news id
+      responses:
+        200:
+          description: The News description by id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseOK"
+        404:
+          $ref: "#/components/responses/NotFound"
+    put:
+      security:
+        - ApiKeyAuth: []
+      summary: Update the news by id
+      tags: [News]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: The news id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/News"
+        required: false
+      responses:
+        200:
+          description: The News was Updated Correctly
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdatedOK"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/ServerError"
+
+    delete:
+      security:
+        - ApiKeyAuth: []
+      summary: Delete the news by id
+      tags: [News]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: The news id
+      responses:
+        200:
+          description: The News was Deleted Correctly
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeletedOK"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/ServerError"
+
+  /news/{id}/comments:
+    get:
+      security:
+        - ApiKeyAuth: []
+      summary: Get the News comments by id
+      tags: [News]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: The news id
+      responses:
+        200:
+          description: The News was Deleted Correctly
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentOK"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/ServerError"

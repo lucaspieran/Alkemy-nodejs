@@ -1,0 +1,214 @@
+components:
+  schemas:
+    Category:
+      type: object
+      required:
+       - name
+       - description
+       - image
+      properties:
+        id:
+          type: number
+          description: The auto-generated id of a category.
+        desctiption:
+          type: string
+          description: The desctiption of the category.
+        image:
+          type: string
+          description: The URL of the image of the category.
+        deletedAt:
+          type: string
+          format: date
+          description: Deleted date
+        createdAt:
+          type: string
+          format: date
+          description: Creation date
+        updatedAt:
+          type: string
+          format: date
+          description: Update date
+      example:
+        id: 1
+        name: Category 1
+        description: Category 1 description
+        image: 0ae0320ea229a22d3b99b00dba52fd86
+        deletedAt: null
+        createdAt: 2021-06-23T14:28:53.000Z
+        updatedAt: 2021-06-23T14:29:23.000Z
+tags:
+  name: Categories
+
+paths:
+  /categories:
+    get:
+      security:
+        - ApiKeyAuth: []
+      summary: Returns the name of all the categories
+      tags: [Categories]
+      responses:
+        200:
+          description: The list of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    name:
+                      type: string
+                      example: Category 1
+        500:
+          description: Error
+        403:
+          description: Forbidden Error
+    post:
+      security:
+        - ApiKeyAuth: []
+      summary: Creates a new category
+      tags: [Categories]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  description: The URL to the image of the category
+                  format: binary
+                name:
+                  type: string
+                  description: The name of the category
+                description:
+                  type: string
+                  description: The description of the category
+      responses:
+        201:
+          description: The created category
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        400: 
+          description: Bad Request
+        403:
+          description: Forbidden Error
+        500:
+          description: Interal Server Error
+
+  /categories/{id}:
+    get:
+      security:
+        - ApiKeyAuth: []
+      summary: Returns the category based on the id
+      tags: [Categories]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          require: true
+          description: Id of the category to get
+      responses:
+        200:
+          description: The list of categories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        400:
+          description: Bad Request
+        403:
+          description: Forbidden Error
+        500:
+          description: Error
+    put:
+      security:
+        - ApiKeyAuth: []
+      summary: Update a category by id
+      tags: [Categories]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          require: true
+          description: id of the category to update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                image:
+                  type: string
+                  description: The URL to the image of the category
+                  require: false
+                name:
+                  type: string
+                  description: The name of the category
+                  require: false
+                description:
+                  type: string
+                  description: The desctiption of the category
+                  require: false
+                deleted:
+                  type: boolean
+                  description: The deleted status of the category
+                  require: false
+                createdAt:
+                  type: string
+                  format: date
+                  description: Creation date
+                  require: false
+                updatedAt:
+                  type: string
+                  format: date
+                  description: Update date
+                  require: false
+        required: true
+      responses:
+        200:
+          description: The category
+          content:
+            application/json:
+              schema:
+                properties:
+                  msg:
+                    type: string
+                    description: A success message
+        400:
+          description: Bad Request
+        403:
+          description: Forbidden Error
+        500:
+          description: Error
+    delete:
+      security:
+        - ApiKeyAuth: []
+      summary: Delete a category
+      tags: [Categories]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          require: true
+          description: Id of the category to delete
+      responses:
+        200:
+          description: The character
+          content:
+            application/json:
+              schema:
+                properties:
+                msg:
+                  type: string
+                  description: A success message
+        400:
+          description: Bad Request
+        403:
+          description: Forbidden Error
+        500:
+          description: Error
